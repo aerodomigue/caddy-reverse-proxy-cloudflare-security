@@ -26,7 +26,7 @@ RUN xcaddy build \
 #	 --with github.com/hslatman/caddy-crowdsec-bouncer/appsec \
 #        --with github.com/hslatman/caddy-crowdsec-bouncer/layer4 \
 #        --with github.com/corazawaf/coraza-caddy/v2 \
-#        --with github.com/greenpau/caddy-security \
+         --with github.com/greenpau/caddy-security \
 #        --with github.com/fabriziosalmi/caddy-waf=./ \
 #        --with github.com/hadi77ir/caddy-websockify \
 	 --with github.com/caddy-dns/cloudflare
