@@ -35,7 +35,8 @@ FROM alpine:${ALPINE_VERSION} AS certs
 RUN apk add --no-cache ca-certificates tzdata brotli-libs
 
 # Final image
-FROM gcr.io/distroless/static-debian12:latest
+FROM alpine:${ALPINE_VERSION}
+RUN apk add --no-cache brotli-libs
 
 ENV XDG_CONFIG_HOME=/config \
     XDG_DATA_HOME=/data
