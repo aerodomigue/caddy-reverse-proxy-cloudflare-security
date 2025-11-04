@@ -34,12 +34,12 @@ Enjoying the caffeine boost? If this repo saves you some time, [buy me a coffee]
     <li>
       <a href="#usage">Usage</a>
         <ul>
+          <li><a href="#choosing-between-docker-labels-and-custom-caddyfile">Choosing Between Docker Labels and Custom Caddyfile</a></li>
           <li><a href="#docker-compose">Docker-compose</a></li>
+          <li><a href="#using-custom-caddyfile-instead-of-docker-labels">Using Custom Caddyfile Instead of Docker Labels</a></li>
           <li><a href="#docker-run">Docker run</a></li>
+          <li><a href="#testing">Testing</a></li>
         </ul>
-        <ul>
-        <li><a href="#testing">Testing</a></li>
-      </ul>
     </li>
     <li><a href="#license">License</a></li>
       <li><a href="#contact">Contact</a></li>
@@ -50,10 +50,10 @@ Enjoying the caffeine boost? If this repo saves you some time, [buy me a coffee]
 ## What's New
 
 - Now built on a minimal **distroless** base image.
-- Expanded plugin set including rate limiting, Cloudflare IP handling, geolocation, Coraza WAF, HTTP caching, and Brotli compression.
+- Expanded plugin set including rate limiting, Cloudflare IP handling, geolocation, Coraza WAF, and HTTP caching.
 - Updated CI workflows and security docs.
-- **Disabled caddy-docker-proxy/v2 plugin** - The Docker proxy functionality is currently disabled in this build.
-- Added cache-handler and caddy-cbrotli plugins for enhanced performance.
+- **Re-enabled caddy-docker-proxy/v2 plugin** - The Docker proxy functionality is now available again.
+- Added cache-handler plugin for enhanced performance.
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
@@ -75,7 +75,6 @@ This docker image enhances the work from [@lucaslorentz](https://github.com/luca
 * **[caddy-security](https://github.com/greenpau/caddy-security)** – authentication portals and security helpers.
 * **[caddy-websockify](https://github.com/hadi77ir/caddy-websockify)** – proxy and translate WebSockets.
 * **[cache-handler](https://github.com/caddyserver/cache-handler)** – HTTP caching middleware.
-* **[caddy-cbrotli](https://github.com/dunglas/caddy-cbrotli)** – Brotli compression support with CGO.
 
 The image uses a **distroless** base for a smaller footprint and improved security. Caddy and its plugins are refreshed automatically by GitHub Actions, so you always get the latest stable versions.
 
@@ -109,6 +108,17 @@ You will need to have:
 <!-- USAGE -->
 ## Usage
 
+### Choosing Between Docker Labels and Custom Caddyfile
+
+This image supports two configuration modes:
+
+1. **Docker Labels Mode (Default)**: Uses `caddy docker-proxy` to automatically generate configuration from container labels
+2. **Custom Caddyfile Mode**: Uses `caddy run` with your own Caddyfile for full control
+
+**Quick Reference:**
+- Use Docker labels for simple setups and automatic configuration
+- Use custom Caddyfile for complex configurations or when you need full control over Caddy settings
+
 ### Docker Compose
 
 :warning: Since caddy-docker-proxy is disabled, you must provide your own Caddyfile configuration. Labels are not processed. :arrow_down:
@@ -133,7 +143,6 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"                                    # Enable HTTP/3
-      - "./Caddyfile:/etc/caddy/Caddyfile"               # Mount your custom Caddyfile
 
   whoami0:
     container_name: whoam
@@ -149,11 +158,9 @@ services:
 >     email email@example.com
 >     acme_dns cloudflare $API_TOKEN
 > }
->
-> your.example.com {
->     reverse_proxy whoami0:80
-> }
 > ```
+>
+> Replace `whoami0.example.com` in the labels above with your actual domain.
 
 ---
 
@@ -170,15 +177,15 @@ docker run -d --name caddy \
   homeall/caddy-reverse-proxy-cloudflare:latest
 ```
 
-Note: Since caddy-docker-proxy is disabled, container labels are not processed. You must configure all routes in your Caddyfile.
+Note: By default, the container uses `caddy docker-proxy` to process Docker labels. If you want to use a custom Caddyfile instead, add `command: caddy run` to your docker-compose.yml.
 
 ---
 
 ### Using a Custom Caddyfile
 
-**Note:** The `caddy-docker-proxy/v2` plugin is currently disabled in this build. You will need to provide your own Caddyfile for configuration.
+**Note:** The `caddy-docker-proxy/v2` plugin is now enabled in this build. By default, the container uses `caddy docker-proxy` to automatically generate Caddy's configuration from Docker labels.
 
-By default, this image would use `caddy-docker-proxy` to generate Caddy's configuration from Docker labels, but since it's disabled, you must provide your own complete Caddyfile.
+If you prefer to use your own Caddyfile instead of Docker labels, you can override the default command.
 
 **How Caddy Loads Configuration:**
 Caddy itself loads its primary configuration from `/etc/caddy/Caddyfile` by default.
@@ -321,7 +328,7 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
-    # Note: Docker labels are not processed since caddy-docker-proxy is disabled
+    # Note: When using command: caddy run, Docker labels are not processed
     # All configuration must be done in your custom Caddyfile
 ```
 The `caddy-storage-redis` configuration (like the `storage redis { ... }` block) must be in the global options of the Caddyfile that Caddy loads (i.e., `/etc/caddy/Caddyfile` if you've mounted your own).
